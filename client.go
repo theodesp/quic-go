@@ -305,7 +305,7 @@ func (c *client) handlePacket(remoteAddr net.Addr, packet []byte) {
 	defer c.mutex.Unlock()
 
 	// reject packets with the wrong connection ID
-	if !hdr.OmitConnectionID && hdr.ConnectionID != c.connectionID {
+	if !hdr.OmitConnectionID && !hdr.ConnectionID.Equal(c.connectionID) {
 		return
 	}
 
@@ -313,7 +313,7 @@ func (c *client) handlePacket(remoteAddr net.Addr, packet []byte) {
 		cr := c.conn.RemoteAddr()
 		// check if the remote address and the connection ID match
 		// otherwise this might be an attacker trying to inject a PUBLIC_RESET to kill the connection
-		if cr.Network() != remoteAddr.Network() || cr.String() != remoteAddr.String() || hdr.ConnectionID != c.connectionID {
+		if cr.Network() != remoteAddr.Network() || cr.String() != remoteAddr.String() || !hdr.ConnectionID.Equal(c.connectionID) {
 			utils.Infof("Received a spoofed Public Reset. Ignoring.")
 			return
 		}

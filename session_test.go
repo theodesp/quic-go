@@ -117,7 +117,7 @@ var _ = Describe("Session", func() {
 		pSess, err = newSession(
 			mconn,
 			protocol.Version39,
-			0,
+			protocol.ConnectionID{8, 7, 6, 5, 4, 3, 2, 1},
 			scfg,
 			nil,
 			populateServerConfig(&Config{}),
@@ -167,7 +167,7 @@ var _ = Describe("Session", func() {
 			pSess, err := newSession(
 				mconn,
 				protocol.Version39,
-				0,
+				protocol.ConnectionID{8, 7, 6, 5, 4, 3, 2, 1},
 				scfg,
 				nil,
 				conf,
@@ -1678,7 +1678,7 @@ var _ = Describe("Client Session", func() {
 			mconn,
 			"hostname",
 			protocol.Version39,
-			0,
+			protocol.ConnectionID{8, 7, 6, 5, 4, 3, 2, 1},
 			nil,
 			populateClientConfig(&Config{}),
 			protocol.VersionWhatever,
