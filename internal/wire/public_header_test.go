@@ -475,16 +475,19 @@ var _ = Describe("Public Header", func() {
 	})
 
 	Context("logging", func() {
-		var buf bytes.Buffer
+		var (
+			buf    *bytes.Buffer
+			logger utils.Logger
+		)
 
 		BeforeEach(func() {
-			buf.Reset()
-			utils.SetLogLevel(utils.LogLevelDebug)
-			log.SetOutput(&buf)
+			buf = &bytes.Buffer{}
+			logger = utils.DefaultLogger
+			logger.SetLogLevel(utils.LogLevelDebug)
+			log.SetOutput(buf)
 		})
 
 		AfterEach(func() {
-			utils.SetLogLevel(utils.LogLevelNothing)
 			log.SetOutput(os.Stdout)
 		})
 
@@ -494,7 +497,7 @@ var _ = Describe("Public Header", func() {
 				PacketNumber:    0x1337,
 				PacketNumberLen: 6,
 				Version:         protocol.Version39,
-			}).logPublicHeader()
+			}).logPublicHeader(logger)
 			Expect(buf.String()).To(ContainSubstring("Public Header{ConnectionID: 0xdecafbad, PacketNumber: 0x1337, PacketNumberLen: 6, Version: gQUIC 39"))
 		})
 
@@ -504,7 +507,7 @@ var _ = Describe("Public Header", func() {
 				PacketNumber:     0x1337,
 				PacketNumberLen:  6,
 				Version:          protocol.Version39,
-			}).logPublicHeader()
+			}).logPublicHeader(logger)
 			Expect(buf.String()).To(ContainSubstring("Public Header{ConnectionID: (omitted)"))
 		})
 
@@ -513,7 +516,7 @@ var _ = Describe("Public Header", func() {
 				OmitConnectionID: true,
 				PacketNumber:     0x1337,
 				PacketNumberLen:  6,
-			}).logPublicHeader()
+			}).logPublicHeader(logger)
 			Expect(buf.String()).To(ContainSubstring("Version: (unset)"))
 		})
 
@@ -521,7 +524,7 @@ var _ = Describe("Public Header", func() {
 			(&Header{
 				ConnectionID:         0xdecafbad,
 				DiversificationNonce: []byte{0xba, 0xdf, 0x00, 0x0d},
-			}).logPublicHeader()
+			}).logPublicHeader(logger)
 			Expect(buf.String()).To(ContainSubstring("DiversificationNonce: []byte{0xba, 0xdf, 0x0, 0xd}"))
 		})
 

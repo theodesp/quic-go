@@ -130,6 +130,7 @@ var _ = Describe("Client Crypto Setup", func() {
 			handshakeEvent,
 			protocol.Version39,
 			nil,
+			utils.DefaultLogger,
 		)
 		Expect(err).ToNot(HaveOccurred())
 		cs = csInt.(*cryptoSetupClient)

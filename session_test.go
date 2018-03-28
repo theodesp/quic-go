@@ -22,6 +22,7 @@ import (
 	"github.com/lucas-clemente/quic-go/internal/mocks/ackhandler"
 	"github.com/lucas-clemente/quic-go/internal/protocol"
 	"github.com/lucas-clemente/quic-go/internal/testdata"
+	"github.com/lucas-clemente/quic-go/internal/utils"
 	"github.com/lucas-clemente/quic-go/internal/wire"
 	"github.com/lucas-clemente/quic-go/qerr"
 )
@@ -102,6 +103,7 @@ var _ = Describe("Session", func() {
 			_ func(net.Addr, *Cookie) bool,
 			_ chan<- handshake.TransportParameters,
 			handshakeChanP chan<- struct{},
+			_ utils.Logger,
 		) (handshake.CryptoSetup, error) {
 			handshakeChan = handshakeChanP
 			return cryptoSetup, nil
@@ -121,6 +123,7 @@ var _ = Describe("Session", func() {
 			scfg,
 			nil,
 			populateServerConfig(&Config{}),
+			utils.DefaultLogger,
 		)
 		Expect(err).NotTo(HaveOccurred())
 		sess = pSess.(*session)
@@ -153,6 +156,7 @@ var _ = Describe("Session", func() {
 				cookieFunc func(net.Addr, *Cookie) bool,
 				_ chan<- handshake.TransportParameters,
 				_ chan<- struct{},
+				_ utils.Logger,
 			) (handshake.CryptoSetup, error) {
 				cookieVerify = cookieFunc
 				return cryptoSetup, nil
@@ -171,6 +175,7 @@ var _ = Describe("Session", func() {
 				scfg,
 				nil,
 				conf,
+				utils.DefaultLogger,
 			)
 			Expect(err).NotTo(HaveOccurred())
 			sess = pSess.(*session)
@@ -1668,6 +1673,7 @@ var _ = Describe("Client Session", func() {
 			handshakeChanP chan<- struct{},
 			_ protocol.VersionNumber,
 			_ []protocol.VersionNumber,
+			_ utils.Logger,
 		) (handshake.CryptoSetup, error) {
 			handshakeChan = handshakeChanP
 			return cryptoSetup, nil
@@ -1683,6 +1689,7 @@ var _ = Describe("Client Session", func() {
 			populateClientConfig(&Config{}),
 			protocol.VersionWhatever,
 			nil,
+			utils.DefaultLogger,
 		)
 		sess = sessP.(*session)
 		Expect(err).ToNot(HaveOccurred())

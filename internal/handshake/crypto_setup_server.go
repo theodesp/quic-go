@@ -54,6 +54,8 @@ type cryptoSetupServer struct {
 	params *TransportParameters
 
 	sni string // need to fill out the ConnectionState
+
+	logger utils.Logger
 }
 
 var _ CryptoSetup = &cryptoSetupServer{}
@@ -79,6 +81,7 @@ func NewCryptoSetup(
 	acceptSTK func(net.Addr, *Cookie) bool,
 	paramsChan chan<- TransportParameters,
 	handshakeEvent chan<- struct{},
+	logger utils.Logger,
 ) (CryptoSetup, error) {
 	nullAEAD, err := crypto.NewNullAEAD(protocol.PerspectiveServer, connID, version)
 	if err != nil {
@@ -99,6 +102,7 @@ func NewCryptoSetup(
 		sentSHLO:          make(chan struct{}),
 		paramsChan:        paramsChan,
 		handshakeEvent:    handshakeEvent,
+		logger:            logger,
 	}, nil
 }
 
@@ -114,7 +118,7 @@ func (h *cryptoSetupServer) HandleCryptoStream() error {
 			return qerr.InvalidCryptoMessageType
 		}
 
-		utils.Debugf("Got %s", message)
+		h.logger.Debugf("Got %s", message)
 		done, err := h.handleMessage(chloData.Bytes(), message.Data)
 		if err != nil {
 			return err
@@ -297,7 +301,7 @@ func (h *cryptoSetupServer) isInchoateCHLO(cryptoData map[Tag][]byte, cert []byt
 func (h *cryptoSetupServer) acceptSTK(token []byte) bool {
 	stk, err := h.scfg.cookieGenerator.DecodeToken(token)
 	if err != nil {
-		utils.Debugf("STK invalid: %s", err.Error())
+		h.logger.Debugf("STK invalid: %s", err.Error())
 		return false
 	}
 	return h.acceptSTKCallback(h.remoteAddr, stk)
@@ -340,7 +344,7 @@ func (h *cryptoSetupServer) handleInchoateCHLO(sni string, chlo []byte, cryptoDa
 
 	var serverReply bytes.Buffer
 	message.Write(&serverReply)
-	utils.Debugf("Sending %s", message)
+	h.logger.Debugf("Sending %s", message)
 	return serverReply.Bytes(), nil
 }
 
@@ -446,7 +450,7 @@ func (h *cryptoSetupServer) handleCHLO(sni string, data []byte, cryptoData map[T
 	}
 	var reply bytes.Buffer
 	message.Write(&reply)
-	utils.Debugf("Sending %s", message)
+	h.logger.Debugf("Sending %s", message)
 	return reply.Bytes(), nil
 }
 

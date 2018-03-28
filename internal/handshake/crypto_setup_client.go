@@ -54,6 +54,8 @@ type cryptoSetupClient struct {
 	handshakeEvent chan<- struct{}
 
 	params *TransportParameters
+
+	logger utils.Logger
 }
 
 var _ CryptoSetup = &cryptoSetupClient{}
@@ -76,6 +78,7 @@ func NewCryptoSetupClient(
 	handshakeEvent chan<- struct{},
 	initialVersion protocol.VersionNumber,
 	negotiatedVersions []protocol.VersionNumber,
+	logger utils.Logger,
 ) (CryptoSetup, error) {
 	nullAEAD, err := crypto.NewNullAEAD(protocol.PerspectiveClient, connID, version)
 	if err != nil {
@@ -95,6 +98,7 @@ func NewCryptoSetupClient(
 		initialVersion:     initialVersion,
 		negotiatedVersions: negotiatedVersions,
 		divNonceChan:       make(chan []byte),
+		logger:             logger,
 	}, nil
 }
 
@@ -144,7 +148,7 @@ func (h *cryptoSetupClient) HandleCryptoStream() error {
 			return err
 		}
 
-		utils.Debugf("Got %s", message)
+		h.logger.Debugf("Got %s", message)
 		switch message.Tag {
 		case TagREJ:
 			if err := h.handleREJMessage(message.Data); err != nil {
@@ -209,7 +213,7 @@ func (h *cryptoSetupClient) handleREJMessage(cryptoData map[Tag][]byte) error {
 
 		err = h.certManager.Verify(h.hostname)
 		if err != nil {
-			utils.Infof("Certificate validation failed: %s", err.Error())
+			h.logger.Infof("Certificate validation failed: %s", err.Error())
 			return qerr.ProofInvalid
 		}
 	}
@@ -217,7 +221,7 @@ func (h *cryptoSetupClient) handleREJMessage(cryptoData map[Tag][]byte) error {
 	if h.serverConfig != nil && len(h.proof) != 0 && h.certManager.GetLeafCert() != nil {
 		validProof := h.certManager.VerifyServerProof(h.proof, h.chloForSignature, h.serverConfig.Get())
 		if !validProof {
-			utils.Infof("Server proof verification failed")
+			h.logger.Infof("Server proof verification failed")
 			return qerr.ProofInvalid
 		}
 
@@ -406,7 +410,7 @@ func (h *cryptoSetupClient) sendCHLO() error {
 		Data: tags,
 	}
 
-	utils.Debugf("Sending %s", message)
+	h.logger.Debugf("Sending %s", message)
 	message.Write(b)
 
 	_, err = h.cryptoStream.Write(b.Bytes())
