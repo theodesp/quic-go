@@ -310,6 +310,7 @@ func (h *sentPacketHandler) detectLostPackets(now time.Time) error {
 	})
 
 	for _, p := range lostPackets {
+		utils.Debugf("\tQueueing packet %#x because it was detected lost", p.PacketNumber)
 		if err := h.queuePacketForRetransmission(p); err != nil {
 			return err
 		}
@@ -490,6 +491,7 @@ func (h *sentPacketHandler) queueHandshakePacketsForRetransmission() error {
 		return true, nil
 	})
 	for _, p := range handshakePackets {
+		utils.Debugf("\tQueueing packet %#x as a handshake retransmission", p.PacketNumber)
 		if err := h.queuePacketForRetransmission(p); err != nil {
 			return err
 		}
