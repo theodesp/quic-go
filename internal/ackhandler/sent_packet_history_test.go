@@ -172,7 +172,6 @@ var _ = Describe("SentPacketHistory", func() {
 			p, err := hist.QueuePacketForRetransmission(3)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(p.PacketNumber).To(Equal(protocol.PacketNumber(3)))
-			Expect(p.queuedForRetransmission).To(BeTrue())
 			Expect(p.retransmissionOf).To(BeZero())
 			Expect(p.isRetransmission).To(BeFalse())
 			Expect(p.retransmittedAs).To(BeNil())

@@ -92,10 +92,10 @@ func (h *sentPacketHistory) QueuePacketForRetransmission(pn protocol.PacketNumbe
 	if !ok {
 		return nil, fmt.Errorf("sent packet history: packet %d not found", pn)
 	}
-	if el.Value.queuedForRetransmission {
+	if el.Value.cannotBeRetransmitted {
 		return nil, fmt.Errorf("sent packet history BUG: packet %d already queued for retransmission", pn)
 	}
-	el.Value.queuedForRetransmission = true
+	el.Value.cannotBeRetransmitted = true
 	if el == h.firstOutstanding {
 		h.readjustFirstOutstanding()
 	}
@@ -106,7 +106,7 @@ func (h *sentPacketHistory) QueuePacketForRetransmission(pn protocol.PacketNumbe
 // This is necessary every time the first outstanding packet is deleted or retransmitted.
 func (h *sentPacketHistory) readjustFirstOutstanding() {
 	el := h.firstOutstanding.Next()
-	for el != nil && el.Value.queuedForRetransmission {
+	for el != nil && el.Value.cannotBeRetransmitted {
 		el = el.Next()
 	}
 	h.firstOutstanding = el
